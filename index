@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualización de Modelo 3D</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js';
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
+    
+    // Coordenadas objetivo y rango de tolerancia
+    const targetCoordinates = { lat: 40.748817, lon: -73.985428 }; // Ejemplo: Coordenadas de la ubicación
+    const tolerance = 0.01; // Tolerancia en grados (~1.11 km)
+
+    // Función para calcular la distancia entre dos coordenadas
+    function haversineDistance(coord1, coord2) {
+      const toRad = (value) => (value * Math.PI) / 180;
+      const R = 6371; // Radio de la Tierra en km
+      const dLat = toRad(coord2.lat - coord1.lat);
+      const dLon = toRad(coord2.lon - coord1.lon);
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(toRad(coord1.lat)) * Math.cos(toRad(coord2.lat)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c; // Distancia en km
+    }
+
+    // Verificar si el usuario está dentro del rango de tolerancia
+    function isWithinTolerance(userCoordinates) {
+      const distance = haversineDistance(userCoordinates, targetCoordinates);
+      return distance <= tolerance;
+    }
+
+    // Simulación: Coordenadas del usuario
+    const userCoordinates = { lat: 40.748817, lon: -73.985428 }; // Cambiar según GPS real
+
+    if (isWithinTolerance(userCoordinates)) {
+      // Configuración básica de Three.js
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Luz
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(1, 1, 1).normalize();
+      scene.add(light);
+
+      // Cargar modelo 3D
+      const loader = new GLTFLoader();
+      loader.load('path_to_model/model.glb', (gltf) => {
+        const model = gltf.scene;
+        model.position.set(0, 0, 0); // Ubicación estática
+        scene.add(model);
+      });
+
+      // Configuración de la cámara
+      camera.position.z = 5;
+
+      // Animación
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+      animate();
+    } else {
+      alert('Estás fuera del rango permitido para ver el modelo 3D.');
+    }
+  </script>
+</body>
+</html>
