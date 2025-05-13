@@ -63,26 +63,15 @@
         gps-entity-place="latitude: 3.340495; longitude: -76.529405;"
         gltf-model="logocelsia.glb"
         scale="1 1 1" <!-- Escala ajustada para tamaño real -->
-        position="0 -1.5 0" <!-- Ajustado para estar al nivel del suelo -->
+        position="0 -5 0" <!-- Ajustado para estar al nivel del suelo -->
         visible="true" <!-- Siempre visible para pruebas -->
         static-body <!-- El modelo permanece estático -->
       ></a-entity>
-
-      <!-- Icono de guía (📍) -->
-      <a-text
-        value="📍"
-        gps-entity-place="latitude: 3.340495; longitude: -76.529405;"
-        scale="20 20 20" <!-- Escala ajustada para ser visible -->
-        position="0 2 0" <!-- Elevado ligeramente sobre el suelo -->
-        align="center"
-        color="#FF0000" <!-- Color rojo para destacar -->
-        visible="true" <!-- Siempre visible -->
-      ></a-text>
     </a-scene>
 
     <!-- Instrucciones -->
     <div style="position: absolute; bottom: 10px; text-align: center; width: 100%; color: white; background: rgba(0,0,0,0.5); padding: 5px;">
-      <p>Muévete hacia el marcador 📍 para visualizar el modelo 3D correctamente.</p>
+      <p>Muévete hacia las coordenadas especificadas para visualizar el modelo 3D correctamente.</p>
     </div>
   </body>
 </html>
