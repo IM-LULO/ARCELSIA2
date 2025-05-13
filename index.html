@@ -13,6 +13,18 @@
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js';
     import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
+
+    // Configurar acceso a la cámara
+    const video = document.getElementById('background-video');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+        video.srcObject = stream;
+      })
+      .catch((error) => {
+        console.error('Error al acceder a la cámara:', error);
+        alert('No se puede acceder a la cámara. Por favor, verifica los permisos.');
+      });
     
     // Coordenadas objetivo y rango de tolerancia
     const targetCoordinates = { lat: 3.394279988081885, lon: -76.5272076871574 }; // Ejemplo: Coordenadas de la ubicación
