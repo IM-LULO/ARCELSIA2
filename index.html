@@ -14,8 +14,8 @@
     >
       <a-camera gps-camera rotation-reader position="0 0 0"></a-camera>
       <script>
-        const targetLatitude = 3.34070097;
-        const targetLongitude = -76.52945677;
+        const targetLatitude = 3.340495;
+        const targetLongitude = -76.529405;
         const tolerance = 0.001; // Tolerancia aumentada (~100 metros)
 
         function isWithinTolerance(userLat, userLon) {
@@ -48,7 +48,7 @@
       </script>
       <a-entity
         id="model"
-        gps-entity-place="latitude: 3.34070097; longitude: -76.52945677;"
+        gps-entity-place="latitude: 3.340495; longitude: -76.529405;"
         gltf-model="logocelsia.glb"
         scale="1 1 1" <!-- Escala en tamaño real -->
         position="0 0 0" <!-- Ajusta la posición si el modelo no aparece en el lugar esperado -->
