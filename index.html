@@ -14,38 +14,40 @@
     >
       <!-- Cámara GPS -->
       <a-camera gps-camera rotation-reader position="0 0 0"></a-camera>
+
       <script>
+        // Coordenadas objetivo
         const targetLatitude = 3.340495;
         const targetLongitude = -76.529405;
-        const targetAltitude = 5; // Altitud en metros
-        const tolerance = 0.001; // Tolerancia (~100 metros)
+        const toleranceInMeters = 50; // Tolerancia de 50 metros
 
-        function isWithinTolerance(userLat, userLon, userAlt) {
+        // Función para calcular la distancia en metros entre dos puntos GPS
+        function calculateDistance(lat1, lon1, lat2, lon2) {
           const toRad = (value) => (value * Math.PI) / 180;
-          const R = 6371; // Radio de la Tierra en km
-          const dLat = toRad(userLat - targetLatitude);
-          const dLon = toRad(userLon - targetLongitude);
+          const R = 6371000; // Radio de la Tierra en metros
+          const dLat = toRad(lat2 - lat1);
+          const dLon = toRad(lon2 - lon1);
           const a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRad(targetLatitude)) *
-              Math.cos(toRad(userLat)) *
+            Math.cos(toRad(lat1)) *
+              Math.cos(toRad(lat2)) *
               Math.sin(dLon / 2) *
               Math.sin(dLon / 2);
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          const distance = R * c * 1000; // Distancia en metros
-
-          // Validar también la altitud con una tolerancia de 2 metros
-          const altitudeDifference = Math.abs(userAlt - targetAltitude);
-          const altitudeTolerance = 2; // Tolerancia en metros
-
-          return distance <= tolerance * 111000 && altitudeDifference <= altitudeTolerance;
+          return R * c; // Distancia en metros
         }
 
+        // Evento GPS para mostrar el modelo si el usuario está dentro del rango
         document.querySelector("[gps-camera]").addEventListener("gps-camera-update-position", (event) => {
-          const { latitude, longitude, altitude } = event.detail.position;
-          console.log("Latitud:", latitude, "Longitud:", longitude, "Altitud:", altitude);
+          const { latitude, longitude } = event.detail.position;
+          console.log("Latitud:", latitude, "Longitud:", longitude);
 
-          if (isWithinTolerance(latitude, longitude, altitude)) {
+          // Calcula la distancia entre el usuario y las coordenadas objetivo
+          const distance = calculateDistance(latitude, longitude, targetLatitude, targetLongitude);
+          console.log("Distancia al objetivo:", distance, "metros");
+
+          // Muestra el modelo si está dentro de la tolerancia
+          if (distance <= toleranceInMeters) {
             console.log("Dentro del rango, mostrando el modelo.");
             document.querySelector("#model").setAttribute("visible", "true");
           } else {
@@ -54,26 +56,31 @@
           }
         });
       </script>
-      
-      <!-- Icono de ubicación rojo -->
-      <a-entity
-        gps-entity-place="latitude: 3.340495; longitude: -76.529405; altitude: 5;"
-        geometry="primitive: cone; height: 2; radiusBottom: 0.5; radiusTop: 0;"
-        material="color: red;"
-      ></a-entity>
 
       <!-- Modelo 3D -->
       <a-entity
         id="model"
-        gps-entity-place="latitude: 3.340495; longitude: -76.529405; altitude: 5;"
-        glb-model="logocelsia.glb"
+        gps-entity-place="latitude: 3.340495; longitude: -76.529405;"
+        gltf-model="logocelsia.glb"
         scale="1 1 1" <!-- Escala en tamaño real -->
-        position="0 0 0" <!-- Ajusta la posición si el modelo no aparece en el lugar esperado -->
-        visible="true" <!-- Visible por defecto para pruebas -->
+        position="0 0 0"
+        visible="false" <!-- Oculto por defecto -->
       ></a-entity>
+
+      <!-- Icono de guía (📍) -->
+      <a-text
+        value="📍"
+        gps-entity-place="latitude: 3.340495; longitude: -76.529405;"
+        scale="20 20 20" <!-- Escala ajustada para que sea visible -->
+        position="0 10 0" <!-- Elevado para que no choque con el modelo -->
+        align="center"
+        color="#FF0000" <!-- Color rojo para destacar -->
+      ></a-text>
     </a-scene>
+
+    <!-- Instrucciones -->
     <div style="position: absolute; bottom: 10px; text-align: center; width: 100%; color: white; background: rgba(0,0,0,0.5); padding: 5px;">
-      <p>Muévete para ver el modelo 3D en las coordenadas especificadas.</p>
+      <p>Muévete hacia el marcador 📍 para activar la visualización del modelo 3D.</p>
     </div>
   </body>
 </html>
