@@ -7,9 +7,9 @@
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene
-      vr-mode-ui="enabled: false"
+      vr-mode-ui="enabled: true"
       embedded
-      arjs="sourceType: webcam; debugUIEnabled: false;"
+      arjs="sourceType: webcam; debugUIEnabled: true;"
       renderer="logarithmicDepthBuffer: true;"
     >
       <!-- Cámara GPS -->
@@ -49,10 +49,12 @@
           // Muestra el modelo si está dentro de la tolerancia
           if (distance <= toleranceInMeters) {
             console.log("Dentro del rango, mostrando el modelo.");
-            document.querySelector("#model").setAttribute("visible", "true");
+            const model = document.querySelector("#model");
+            model.setAttribute("visible", "true");
           } else {
             console.log("Fuera del rango, ocultando el modelo.");
-            document.querySelector("#model").setAttribute("visible", "false");
+            const model = document.querySelector("#model");
+            model.setAttribute("visible", "false");
           }
         });
       </script>
@@ -63,7 +65,7 @@
         gps-entity-place="latitude: 3.340495; longitude: -76.529405;"
         gltf-model="logocelsia.glb"
         scale="1 1 1" <!-- Escala ajustada para tamaño real -->
-        position="0 50 0" <!-- Ajustado para estar al nivel del suelo -->
+        position="0 0 0" <!-- Centramos el modelo en la pantalla -->
         visible="true" <!-- Siempre visible para pruebas -->
         static-body <!-- El modelo permanece estático -->
       ></a-entity>
