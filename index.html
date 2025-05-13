@@ -13,18 +13,6 @@
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js';
     import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
-
-    // Configurar acceso a la cámara
-    const video = document.getElementById('background-video');
-
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then((stream) => {
-        video.srcObject = stream;
-      })
-      .catch((error) => {
-        console.error('Error al acceder a la cámara:', error);
-        alert('No se puede acceder a la cámara. Por favor, verifica los permisos.');
-      });
     
     // Coordenadas objetivo y rango de tolerancia
     const targetCoordinates = { lat: 3.394279988081885, lon: -76.5272076871574 }; // Ejemplo: Coordenadas de la ubicación
@@ -73,7 +61,7 @@
         scene.add(model);
       });
 
-      // Configuración de la cámara
+       // Configuración de la cámara
       camera.position.z = 5;
 
       // Animación
@@ -81,6 +69,20 @@
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
       }
+
+      // Acceder a la cámara
+      async function startCamera() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          const video = document.getElementById('camera-feed');
+          video.srcObject = stream;
+        } catch (error) {
+          console.error('Error al acceder a la cámara:', error);
+        }
+      }
+
+      // Iniciar cámara y animación
+      startCamera();
       animate();
     } else {
       alert('Estás fuera del rango permitido para ver el modelo 3D.');
