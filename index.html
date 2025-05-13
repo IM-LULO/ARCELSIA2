@@ -86,12 +86,21 @@
       async function startCamera() {
         try {
           const video = document.getElementById('camera-feed');
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); // Usa la cámara trasera
           video.srcObject = stream;
+          video.play();
         } catch (error) {
           console.error('Error al acceder a la cámara:', error);
+          alert('No se pudo acceder a la cámara. Verifica los permisos del navegador.');
         }
       }
+
+      // Manejar cambios de tamaño de la ventana
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
 
       // Iniciar cámara y animación
       startCamera();
