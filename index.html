@@ -1,113 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visualización de Modelo 3D con Cámara</title>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    video, canvas {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-    }
-    video {
-      z-index: -1; /* Coloca el video detrás del canvas */
-    }
-  </style>
-</head>
-<body>
-  <!-- Video para mostrar la cámara -->
-  <video id="camera-feed" autoplay muted playsinline></video>
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js';
-    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
+<html>
+  <head>
+    <title>AR Experience with Coordinates</title>
+    <!-- A-Frame and AR.js -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ar.js"></script>
+  </head>
+  <body style="margin: 0; overflow: hidden;">
+    <!-- AR Scene -->
+    <a-scene
+      vr-mode-ui="enabled: false"
+      embedded
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      renderer="logarithmicDepthBuffer: true;"
+    >
+      <!-- GPS Camera -->
+      <a-camera gps-camera rotation-reader position="0 0 0"></a-camera>
 
-    // Coordenadas objetivo y rango de tolerancia
-    const targetCoordinates = { lat: 3.34017385, lon: -76.52965549 }; // Coordenadas ejemplo
-    const tolerance = 0.01; // Tolerancia en grados (~1.11 km)
+      <!-- Script to handle tolerance and static model placement -->
+      <script>
+        // Coordenadas objetivo
+        const targetLatitude = 3.392473;
+        const targetLongitude = -76.550212;
+        const tolerance = 0.0005; // Tolerancia en grados (~50 metros)
 
-    // Función para calcular la distancia entre dos coordenadas
-    function haversineDistance(coord1, coord2) {
-      const toRad = (value) => (value * Math.PI) / 180;
-      const R = 6371; // Radio de la Tierra en km
-      const dLat = toRad(coord2.lat - coord1.lat);
-      const dLon = toRad(coord2.lon - coord1.lon);
-      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(toRad(coord1.lat)) * Math.cos(toRad(coord2.lat)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c; // Distancia en km
-    }
-
-    // Verificar si el usuario está dentro del rango de tolerancia
-    function isWithinTolerance(userCoordinates) {
-      const distance = haversineDistance(userCoordinates, targetCoordinates);
-      return distance <= tolerance;
-    }
-
-    // Simulación: Coordenadas del usuario
-    const userCoordinates = { lat: 3.34017385, lon: -76.52965549 }; // Cambiar según GPS real
-
-    if (isWithinTolerance(userCoordinates)) {
-      // Configuración básica de Three.js
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      const renderer = new THREE.WebGLRenderer({ alpha: true }); // Fondo transparente
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
-
-      // Luz
-      const light = new THREE.DirectionalLight(0xffffff, 1);
-      light.position.set(1, 1, 1).normalize();
-      scene.add(light);
-
-      // Cargar modelo 3D
-      const loader = new GLTFLoader();
-      loader.load('logocelsia.glb', (gltf) => {
-        const model = gltf.scene;
-        model.position.set(0, 0, -5); // Ajusta la posición del modelo
-        model.scale.set(0.5, 0.5, 0.5); // Escala del modelo
-        scene.add(model);
-      });
-
-      // Configuración de la cámara
-      camera.position.z = 5;
-
-      // Animación
-      function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-      }
-
-      // Acceder a la cámara
-      async function startCamera() {
-        try {
-          const video = document.getElementById('camera-feed');
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); // Usa la cámara trasera
-          video.srcObject = stream;
-          video.play();
-        } catch (error) {
-          console.error('Error al acceder a la cámara:', error);
-          alert('No se pudo acceder a la cámara. Verifica los permisos del navegador.');
+        // Función para calcular la distancia
+        function isWithinTolerance(userLat, userLon) {
+          const toRad = (value) => (value * Math.PI) / 180;
+          const R = 6371; // Radio de la Tierra en km
+          const dLat = toRad(userLat - targetLatitude);
+          const dLon = toRad(userLon - targetLongitude);
+          const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(targetLatitude)) *
+              Math.cos(toRad(userLat)) *
+              Math.sin(dLon / 2) *
+              Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          const distance = R * c; // Distancia en km
+          return distance * 1000 <= tolerance * 111000; // Convertir a metros
         }
-      }
 
-      // Manejar cambios de tamaño de la ventana
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
+        // Evento GPS para verificar tolerancia
+        document.querySelector("[gps-camera]").addEventListener("gps-camera-update-position", (event) => {
+          const userLat = event.detail.position.latitude;
+          const userLon = event.detail.position.longitude;
 
-      // Iniciar cámara y animación
-      startCamera();
-      animate();
-    } else {
-      alert('Estás fuera del rango permitido para ver el modelo 3D.');
-    }
-  </script>
-</body>
+          // Verificar si el usuario está dentro del rango permitido
+          if (isWithinTolerance(userLat, userLon)) {
+            const entity = document.querySelector("#model");
+            entity.setAttribute("visible", "true");
+          } else {
+            const entity = document.querySelector("#model");
+            entity.setAttribute("visible", "false");
+          }
+        });
+      </script>
+
+      <!-- 3D Model at Specific Coordinates -->
+      <a-entity
+        id="model"
+        gps-entity-place="latitude: 3.392473; longitude: -76.550212;"
+        gltf-model="LogoCelsiaGLB3.glb"
+        scale="1 1 1"
+        visible="false" <!-- Oculto por defecto -->
+      ></a-entity>
+    </a-scene>
+
+    <!-- Instructions -->
+    <div style="position: absolute; bottom: 10px; text-align: center; width: 100%; color: white; background: rgba(0,0,0,0.5); padding: 5px;">
+      <p>Muévete para ver el modelo 3D en las coordenadas especificadas.</p>
+    </div>
+  </body>
 </html>
