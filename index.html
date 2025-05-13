@@ -7,9 +7,9 @@
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene
-      vr-mode-ui="enabled: true"
+      vr-mode-ui="enabled: false"
       embedded
-      arjs="sourceType: webcam; debugUIEnabled: true;"
+      arjs="sourceType: webcam; debugUIEnabled: false;"
       renderer="logarithmicDepthBuffer: true;"
     >
       <!-- Cámara GPS -->
@@ -63,7 +63,7 @@
         gps-entity-place="latitude: 3.340495; longitude: -76.529405;"
         gltf-model="logocelsia.glb"
         scale="1 1 1" <!-- Escala ajustada para tamaño real -->
-        position="0 -5 0" <!-- Ajustado para estar al nivel del suelo -->
+        position="0 1050 0" <!-- Ajustado para estar al nivel del suelo -->
         visible="true" <!-- Siempre visible para pruebas -->
         static-body <!-- El modelo permanece estático -->
       ></a-entity>
