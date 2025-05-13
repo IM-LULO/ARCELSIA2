@@ -17,7 +17,7 @@
       <script>
         const targetLatitude = 3.340495;
         const targetLongitude = -76.529405;
-        const targetAltitude = 1045; // Altitud en metros
+        const targetAltitude = 5; // Altitud en metros
         const tolerance = 0.001; // Tolerancia (~100 metros)
 
         function isWithinTolerance(userLat, userLon, userAlt) {
@@ -57,7 +57,7 @@
       
       <!-- Icono de ubicación rojo -->
       <a-entity
-        gps-entity-place="latitude: 3.340495; longitude: -76.529405; altitude: 1045;"
+        gps-entity-place="latitude: 3.340495; longitude: -76.529405; altitude: 5;"
         geometry="primitive: cone; height: 2; radiusBottom: 0.5; radiusTop: 0;"
         material="color: red;"
       ></a-entity>
@@ -65,7 +65,7 @@
       <!-- Modelo 3D -->
       <a-entity
         id="model"
-        gps-entity-place="latitude: 3.340495; longitude: -76.529405; altitude: 1045;"
+        gps-entity-place="latitude: 3.340495; longitude: -76.529405; altitude: 5;"
         glb-model="logocelsia.glb"
         scale="1 1 1" <!-- Escala en tamaño real -->
         position="0 0 0" <!-- Ajusta la posición si el modelo no aparece en el lugar esperado -->
