@@ -60,14 +60,6 @@
         function checkProximity(currentLatitude, currentLongitude) {
           const model = document.querySelector("#model");
 
-          // Calcula la diferencia en metros entre la ubicación actual y el objetivo
-          const distanceLat = Math.abs(targetLatitude - currentLatitude) * 111320; // 1 grado de latitud = 111.32 km
-          const distanceLon = Math.abs(targetLongitude - currentLongitude) * (40075000 * Math.cos((currentLatitude * Math.PI) / 180) / 360); // Ajusta con longitud
-
-          const distance = Math.sqrt(distanceLat ** 2 + distanceLon ** 2);
-
-          console.log("Distancia aproximada al objetivo:", distance, "metros");
-
           // Muestra el modelo si está dentro de la tolerancia
           if (distance <= toleranceInMeters) {
             console.log("Dentro del rango de tolerancia. Mostrando el modelo.");
@@ -85,8 +77,6 @@
         gps-entity-place="latitude: 3.34071628; longitude: -76.52940404;"
         gltf-model="logocelsia.glb"
         scale="1 1 1" 
-        position="0 0 0" 
-        visible="false" 
         static-body 
       ></a-entity>
     </a-scene>
