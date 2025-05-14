@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Modelo 3D con Tolerancia y Ubicación</title>
+    <title>Modelo 3D con Geolocalización Simplificada</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ar.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDXISwnR8BTbDdDjfwPuQvbhYustREcQdg"></script>
@@ -10,7 +10,7 @@
     <!-- Mensaje inicial para solicitar permisos -->
     <div id="permission-request" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px;">
       <p>Esta aplicación necesita acceso a tu ubicación para funcionar correctamente. Por favor, permite el acceso.</p>
-      <button onclick="requestLocationAccess()" style="padding: 10px 20px; font-size: 16px;">Permitir Ubicación</button>
+      <button id="permission-button" style="padding: 10px 20px; font-size: 16px;">Permitir Ubicación</button>
     </div>
 
     <!-- Escena de A-Frame -->
@@ -29,35 +29,44 @@
         const targetLongitude = -76.529405;
         const toleranceInMeters = 50; // Tolerancia de 50 metros
 
+        // Elementos del DOM
+        const permissionRequestDiv = document.getElementById("permission-request");
+        const permissionButton = document.getElementById("permission-button");
+        const aScene = document.querySelector("a-scene");
+
         // Solicitar acceso a la ubicación
-        function requestLocationAccess() {
+        permissionButton.addEventListener("click", () => {
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (position) => {
                 console.log("Permisos otorgados. Latitud:", position.coords.latitude, "Longitud:", position.coords.longitude);
-                document.getElementById("permission-request").style.display = "none"; // Oculta el mensaje de permisos
-                document.querySelector("a-scene").style.display = "block"; // Muestra la escena
+                permissionRequestDiv.style.display = "none"; // Oculta el mensaje de permisos
+                aScene.style.display = "block"; // Muestra la escena
+
+                // Compara la ubicación actual con las coordenadas objetivo
+                checkProximity(position.coords.latitude, position.coords.longitude);
               },
               (error) => {
-                console.error("Permiso denegado o error al obtener la ubicación:", error);
+                console.error("Error al obtener la ubicación:", error);
                 alert("Por favor, permite el acceso a la ubicación para usar esta aplicación.");
               }
             );
           } else {
             alert("Tu navegador no soporta geolocalización.");
           }
-        }
+        });
 
-        // Lógica para mostrar/ocultar el modelo en función de la distancia
-        document.querySelector("[gps-camera]").addEventListener("gps-camera-update-position", (event) => {
-          const { latitude, longitude } = event.detail.position;
-          console.log("Latitud actual:", latitude, "Longitud actual:", longitude);
-
-          // Calcula la distancia entre el usuario y las coordenadas objetivo
-          const distance = calculateDistance(latitude, longitude, targetLatitude, targetLongitude);
-          console.log("Distancia calculada al objetivo:", distance, "metros");
-
+        // Verifica si la ubicación está dentro del rango de tolerancia
+        function checkProximity(currentLatitude, currentLongitude) {
           const model = document.querySelector("#model");
+
+          // Calcula la diferencia en metros entre la ubicación actual y el objetivo
+          const distanceLat = Math.abs(targetLatitude - currentLatitude) * 111320; // 1 grado de latitud = 111.32 km
+          const distanceLon = Math.abs(targetLongitude - currentLongitude) * (40075000 * Math.cos((currentLatitude * Math.PI) / 180) / 360); // Ajusta con longitud
+
+          const distance = Math.sqrt(distanceLat ** 2 + distanceLon ** 2);
+
+          console.log("Distancia aproximada al objetivo:", distance, "metros");
 
           // Muestra el modelo si está dentro de la tolerancia
           if (distance <= toleranceInMeters) {
@@ -67,7 +76,7 @@
             console.log("Fuera del rango de tolerancia. Ocultando el modelo.");
             model.setAttribute("visible", "false");
           }
-        });
+        }
       </script>
 
       <!-- Modelo 3D -->
