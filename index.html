@@ -29,25 +29,6 @@
         const targetLongitude = 76.52952055;
         const toleranceInMeters = 50; // Tolerancia de 50 metros
 
-        // Solicitar acceso a la ubicación
-        function requestLocationAccess() {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                console.log("Permisos otorgados. Latitud:", position.coords.latitude, "Longitud:", position.coords.longitude);
-                document.getElementById("permission-request").style.display = "none"; // Oculta el mensaje de permisos
-                document.querySelector("a-scene").style.display = "block"; // Muestra la escena
-              },
-              (error) => {
-                console.error("Permiso denegado o error al obtener la ubicación:", error);
-                alert("Por favor, permite el acceso a la ubicación para usar esta aplicación.");
-              }
-            );
-          } else {
-            alert("Tu navegador no soporta geolocalización.");
-          }
-        }
-
         // Función para calcular la distancia en metros entre dos puntos GPS
         function calculateDistance(lat1, lon1, lat2, lon2) {
           const toRad = (value) => (value * Math.PI) / 180;
