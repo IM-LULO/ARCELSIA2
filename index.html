@@ -25,7 +25,7 @@
         // Coordenadas objetivo
         const targetLat = 3.34071628;
         const targetLon = -76.52940404;
-        // Un rango amplio en grados (aprox. ±0.00225 ≈ 250 metros)
+        // Un rango amplio en grados (aprox. ±0.001 ≈ 110 metros)
         const delta = 0.00100;
 
         const minLat = targetLat - delta;
@@ -75,19 +75,21 @@
         }
       </script>
 
+      <!-- Agregada altitud (gps-entity-place acepta "altitude") y rotación Y (opcional) -->
       <a-entity
         id="model"
-        gps-entity-place="latitude: 3.34071628; longitude: -76.52940404;"
+        gps-entity-place="latitude: 3.34071628; longitude: -76.52940404; altitude: 1020.56742902"
         gltf-model="logocelsia.glb"
         scale="1 1 1"
         position="0 0 0"
         visible="false"
         static-body
+        rotation="0 67.97105087 0"
       ></a-entity>
     </a-scene>
 
     <div style="position: absolute; bottom: 10px; text-align: center; width: 100%; color: white; background: rgba(0,0,0,0.5); padding: 5px;">
-      <p>Acércate a la zona para visualizar el modelo 3D, puedes verlo desde lejos gracias al rango amplio de visualización.</p>
+      <p>Acércate a la zona para visualizar el modelo 3D. </p>
     </div>
   </body>
 </html>
