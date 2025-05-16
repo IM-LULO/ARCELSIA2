@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>AR Experience with Coordinates & Range</title>
+    <title>AR Experience Modelo Fijo</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ar.js"></script>
   </head>
   <body style="margin: 0; overflow: hidden;">
-    <!-- AR Scene -->
     <a-scene
       vr-mode-ui="enabled: false"
       embedded
       arjs="sourceType: webcam; debugUIEnabled: false;"
       style="width: 100vw; height: 100vh;"
     >
-      <!-- GPS Camera (actualizado con gpsMinDistance) -->
+      <!-- GPS Camera -->
       <a-camera
-        gps-camera="gpsMinDistance: 1"
+        gps-camera
         rotation-reader
         position="0 0 0"
         id="gpscam"
@@ -32,23 +31,20 @@
       ></a-entity>
     </a-scene>
 
-    <!-- Instructions -->
     <div style="position: absolute; bottom: 10px; text-align: center; width: 100%;">
       <p>
-        El modelo 3D es fijo en la ubicación GPS. Solo puedes visualizarlo si estás a menos de 20 metros de distancia.<br>
-        Muévete con tu dispositivo hasta acercarte al punto para verlo.
+        El modelo 3D aparecerá al acercarte y <b>quedará fijo</b> donde apareció, aunque se actualice el GPS.
       </p>
     </div>
 
     <script>
-      // Coordenadas del modelo 3D
+      // --- Configuración del modelo ---
       const MODEL_LAT = 3.34071628;
       const MODEL_LON = -76.52940404;
       const RANGE_METERS = 20;
 
-      // Haversine formula for distance in meters
       function getDistanceMeters(lat1, lon1, lat2, lon2) {
-        const R = 6371000; // Radio de la tierra en metros
+        const R = 6371000;
         const toRad = x => x * Math.PI / 180;
         const dLat = toRad(lat2 - lat1);
         const dLon = toRad(lon2 - lon1);
@@ -59,31 +55,42 @@
         return R * c;
       }
 
-      // Filtro para minimizar ruido GPS
-      let lastLat = null;
-      let lastLon = null;
-      const MIN_DIST_METERS = 0.1; // Solo actualiza si el usuario se mueve más de 10 cm
+      // --- Lógica para fijar el modelo ---
+      let modelFixed = false;
+      let fixedPosition = null;
 
       document.addEventListener("DOMContentLoaded", function() {
         const model = document.getElementById("model");
         const gpsCam = document.getElementById("gpscam");
         gpsCam.addEventListener("gps-camera-update-position", function(event) {
           const { latitude, longitude } = event.detail.position;
-          if (lastLat !== null && lastLon !== null) {
-            const dist = getDistanceMeters(latitude, longitude, lastLat, lastLon);
-            if (dist < MIN_DIST_METERS) return; // Ignora el cambio si es muy pequeño
-          }
-          lastLat = latitude;
-          lastLon = longitude;
-
-          // Mostrar modelo solo si el usuario está dentro del rango
           const distance = getDistanceMeters(latitude, longitude, MODEL_LAT, MODEL_LON);
+
           if (distance <= RANGE_METERS) {
-            model.setAttribute("visible", "true");
+            if (!modelFixed) {
+              model.setAttribute("visible", "true");
+              // Espera a que A-Frame posicione el modelo por GPS antes de fijar
+              setTimeout(() => {
+                fixedPosition = model.object3D.position.clone();
+                modelFixed = true;
+              }, 100);
+            }
           } else {
             model.setAttribute("visible", "false");
+            modelFixed = false;
+            fixedPosition = null;
           }
         });
+
+        // Componente para mantener la posición fija
+        AFRAME.registerComponent('freeze-model', {
+          tick: function () {
+            if (modelFixed && fixedPosition) {
+              model.object3D.position.copy(fixedPosition);
+            }
+          }
+        });
+        model.setAttribute('freeze-model', '');
       });
     </script>
   </body>
