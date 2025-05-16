@@ -12,7 +12,6 @@
       arjs="sourceType: webcam; debugUIEnabled: false;"
       style="width: 100vw; height: 100vh;"
     >
-      <!-- GPS Camera -->
       <a-camera
         gps-camera
         rotation-reader
@@ -20,7 +19,6 @@
         id="gpscam"
       ></a-camera>
 
-      <!-- 3D Model at Specific Coordinates (initially hidden) -->
       <a-entity
         id="model"
         gps-entity-place="latitude: 3.34071628; longitude: -76.52940404; altitude: 1020.56742902"
@@ -38,7 +36,6 @@
     </div>
 
     <script>
-      // --- Configuración del modelo ---
       const MODEL_LAT = 3.34071628;
       const MODEL_LON = -76.52940404;
       const RANGE_METERS = 20;
@@ -55,7 +52,6 @@
         return R * c;
       }
 
-      // --- Lógica para fijar el modelo ---
       let modelFixed = false;
       let fixedPosition = null;
 
@@ -69,9 +65,11 @@
           if (distance <= RANGE_METERS) {
             if (!modelFixed) {
               model.setAttribute("visible", "true");
-              // Espera a que A-Frame posicione el modelo por GPS antes de fijar
+              // Espera a que AR.js posicione el modelo, luego lo "desvincula" del GPS
               setTimeout(() => {
                 fixedPosition = model.object3D.position.clone();
+                // Quita el atributo gps-entity-place para que AR.js deje de mover el modelo
+                model.removeAttribute('gps-entity-place');
                 modelFixed = true;
               }, 100);
             }
@@ -79,10 +77,14 @@
             model.setAttribute("visible", "false");
             modelFixed = false;
             fixedPosition = null;
+            // Al volver a entrar en rango, restauramos el atributo para que pueda posicionarse de nuevo
+            if (!model.hasAttribute('gps-entity-place')) {
+              model.setAttribute('gps-entity-place', `latitude: ${MODEL_LAT}; longitude: ${MODEL_LON}; altitude: 1020.56742902`);
+            }
           }
         });
 
-        // Componente para mantener la posición fija
+        // Este componente fuerza la posición cada frame si el modelo está fijo
         AFRAME.registerComponent('freeze-model', {
           tick: function () {
             if (modelFixed && fixedPosition) {
