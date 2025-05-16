@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Modelo 3D con visualización por rango amplio</title>
+    <title>Modelo 3D GPS fijo</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ar.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDXISwnR8BTbDdDjfwPuQvbhYustREcQdg"></script>
   </head>
   <body style="margin: 0; overflow: hidden;">
     <!-- Mensaje inicial para solicitar permisos -->
-    <div id="permission-request" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px;">
+    <div id="permission-request" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; z-index:10;">
       <p>Esta aplicación necesita acceso a tu ubicación para funcionar correctamente. Por favor, permite el acceso.</p>
       <button id="permission-button" style="padding: 10px 20px; font-size: 16px;">Permitir Ubicación</button>
     </div>
@@ -21,35 +21,25 @@
     >
       <a-camera gps-camera rotation-reader position="0 0 0"></a-camera>
 
+      <!-- Modelo 3D SIEMPRE visible en la coordenada GPS con altitud y rotación -->
       <a-entity
         id="model"
         gps-entity-place="latitude: 3.34071628; longitude: -76.52940404; altitude: 1020.56742902"
         gltf-model="logocelsia.glb"
         scale="1 1 1"
         position="0 0 0"
-        visible="false"
+        visible="true"
         static-body
         rotation="0 67.97105087 0"
       ></a-entity>
     </a-scene>
 
     <div style="position: absolute; bottom: 10px; text-align: center; width: 100%; color: white; background: rgba(0,0,0,0.5); padding: 5px;">
-      <p>Acércate a la zona para visualizar el modelo 3D. </p>
+      <p>El modelo 3D está fijo en la ubicación GPS. Muévete con tu dispositivo para explorarlo.</p>
     </div>
 
-    <!-- TODO: Todo el JS debe ir aquí, nunca fuera de <script> -->
     <script>
-      // Coordenadas objetivo
-      const targetLat = 3.34071628;
-      const targetLon = -76.52940404;
-      // Un rango amplio en grados (aprox. ±0.001 ≈ 110 metros)
-      const delta = 0.00100;
-
-      const minLat = targetLat - delta;
-      const maxLat = targetLat + delta;
-      const minLon = targetLon - delta;
-      const maxLon = targetLon + delta;
-
+      // Control de permisos simple: solo muestra la escena si se otorgan permisos
       const permissionRequestDiv = document.getElementById("permission-request");
       const permissionButton = document.getElementById("permission-button");
       const aScene = document.querySelector("a-scene");
@@ -57,12 +47,11 @@
       permissionButton.addEventListener("click", () => {
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
-            (position) => {
+            () => {
               permissionRequestDiv.style.display = "none";
               aScene.style.display = "block";
-              checkRange(position.coords.latitude, position.coords.longitude);
             },
-            (error) => {
+            () => {
               alert("Por favor, permite el acceso a la ubicación para usar esta aplicación.");
             }
           );
@@ -70,26 +59,6 @@
           alert("Tu navegador no soporta geolocalización.");
         }
       });
-
-      document.addEventListener("DOMContentLoaded", () => {
-        document.querySelector("[gps-camera]").addEventListener("gps-camera-update-position", (event) => {
-          const { latitude, longitude } = event.detail.position;
-          checkRange(latitude, longitude);
-        });
-      });
-
-      // Solo el dispositivo tiene el rango amplio para visualizar el modelo
-      function checkRange(lat, lon) {
-        const model = document.querySelector("model");
-        if (
-          lat >= minLat && lat <= maxLat &&
-          lon >= minLon && lon <= maxLon
-        ) {
-          model.setAttribute("visible", "true");
-        } else {
-          model.setAttribute("visible", "false");
-        }
-      }
     </script>
   </body>
 </html>
