@@ -1,77 +1,46 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>AR GPS Modelo fijo</title>
+    <title>AR Experience with Coordinates & Range</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ar.js@3.3.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ar.js"></script>
   </head>
   <body style="margin: 0; overflow: hidden;">
-    <button id="enable-orientation" style="position:absolute;top:20px;left:50%;transform:translateX(-50%);z-index:99;">
-      Habilitar orientación del dispositivo
-    </button>
+    <!-- AR Scene -->
     <a-scene
+      vr-mode-ui="enabled: false"
       embedded
       arjs="sourceType: webcam; debugUIEnabled: false;"
-      renderer="logarithmicDepthBuffer: true;"
-      vr-mode-ui="enabled: false"
       style="width: 100vw; height: 100vh;"
     >
+      <!-- GPS Camera (actualizado con gpsMinDistance) -->
       <a-camera
         gps-camera="gpsMinDistance: 1"
         rotation-reader
-        id="gpscam"
         position="0 0 0"
+        id="gpscam"
       ></a-camera>
+
+      <!-- 3D Model at Specific Coordinates (initially hidden) -->
       <a-entity
         id="model"
         gps-entity-place="latitude: 3.34071628; longitude: -76.52940404; altitude: 1020.56742902"
         gltf-model="logocelsia.glb"
         scale="1 1 1"
         position="0 0 0"
-        rotation="0 67.97105087 0"
         visible="false"
       ></a-entity>
     </a-scene>
+
+    <!-- Instructions -->
     <div style="position: absolute; bottom: 10px; text-align: center; width: 100%;">
       <p>
-        El modelo 3D es fijo al mundo real. Puedes caminar alrededor de él.<br>
-        Si el modelo no aparece o se mueve raro, toca "Habilitar orientación del dispositivo", muévete lentamente y espera a que el GPS y la brújula se estabilicen.
+        El modelo 3D es fijo en la ubicación GPS. Solo puedes visualizarlo si estás a menos de 20 metros de distancia.<br>
+        Muévete con tu dispositivo hasta acercarte al punto para verlo.
       </p>
     </div>
+
     <script>
-      // Permiso de orientación para iOS/Safari
-      function checkOrientationPermission() {
-        if (
-          typeof DeviceOrientationEvent !== 'undefined' &&
-          typeof DeviceOrientationEvent.requestPermission === 'function'
-        ) {
-          document.getElementById('enable-orientation').style.display = 'block';
-        } else {
-          document.getElementById('enable-orientation').style.display = 'none';
-        }
-      }
-      checkOrientationPermission();
-
-      document.getElementById('enable-orientation').addEventListener('click', function() {
-        if (
-          typeof DeviceOrientationEvent !== 'undefined' &&
-          typeof DeviceOrientationEvent.requestPermission === 'function'
-        ) {
-          DeviceOrientationEvent.requestPermission()
-            .then(response => {
-              if (response === 'granted') {
-                alert('Permiso de orientación concedido');
-                document.getElementById('enable-orientation').style.display = 'none';
-              } else {
-                alert('Permiso de orientación denegado');
-              }
-            })
-            .catch(console.error);
-        } else {
-          document.getElementById('enable-orientation').style.display = 'none';
-        }
-      });
-
       // Coordenadas del modelo 3D
       const MODEL_LAT = 3.34071628;
       const MODEL_LON = -76.52940404;
@@ -90,42 +59,31 @@
         return R * c;
       }
 
-      // Lógica para fijar el modelo solo una vez
-      let modelFixed = false;
-      let fixedPosition = null;
+      // Filtro para minimizar ruido GPS
+      let lastLat = null;
+      let lastLon = null;
+      const MIN_DIST_METERS = 0.1; // Solo actualiza si el usuario se mueve más de 10 cm
 
       document.addEventListener("DOMContentLoaded", function() {
         const model = document.getElementById("model");
         const gpsCam = document.getElementById("gpscam");
         gpsCam.addEventListener("gps-camera-update-position", function(event) {
           const { latitude, longitude } = event.detail.position;
-          const distance = getDistanceMeters(latitude, longitude, MODEL_LAT, MODEL_LON);
+          if (lastLat !== null && lastLon !== null) {
+            const dist = getDistanceMeters(latitude, longitude, lastLat, lastLon);
+            if (dist < MIN_DIST_METERS) return; // Ignora el cambio si es muy pequeño
+          }
+          lastLat = latitude;
+          lastLon = longitude;
 
+          // Mostrar modelo solo si el usuario está dentro del rango
+          const distance = getDistanceMeters(latitude, longitude, MODEL_LAT, MODEL_LON);
           if (distance <= RANGE_METERS) {
-            if (!modelFixed) {
-              model.setAttribute("visible", "true");
-              // Espera a que A-Frame posicione el modelo (puede requerir un pequeño delay)
-              setTimeout(() => {
-                fixedPosition = model.object3D.position.clone();
-                modelFixed = true;
-              }, 100);
-            }
+            model.setAttribute("visible", "true");
           } else {
             model.setAttribute("visible", "false");
-            modelFixed = false;
-            fixedPosition = null;
           }
         });
-
-        // Bloquea la posición cuando se haya fijado
-        AFRAME.registerComponent('freeze-model', {
-          tick: function () {
-            if (modelFixed && fixedPosition) {
-              model.object3D.position.copy(fixedPosition);
-            }
-          }
-        });
-        model.setAttribute('freeze-model', '');
       });
     </script>
   </body>
