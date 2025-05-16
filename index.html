@@ -12,7 +12,15 @@
       arjs="sourceType: webcam; debugUIEnabled: false;"
       style="width: 100vw; height: 100vh;"
     >
-      <a-camera gps-camera rotation-reader id="gpscam"></a-camera>
+      <!-- GPS Camera -->
+      <a-camera
+        gps-camera
+        rotation-reader
+        position="0 0 0"
+        id="gpscam"
+      ></a-camera>
+
+      <!-- 3D Model at Specific Coordinates (initially hidden) -->
       <a-entity
         id="model"
         gps-entity-place="latitude: 3.34071628; longitude: -76.52940404; altitude: 1020.56742902"
@@ -22,11 +30,13 @@
         visible="false"
       ></a-entity>
     </a-scene>
+
     <div style="position: absolute; bottom: 10px; text-align: center; width: 100%;">
       <p>
         El modelo 3D aparecerá al acercarte y se <b>quedará fijo visualmente</b> donde apareció.
       </p>
     </div>
+
     <script>
       // --- Configuración del modelo ---
       const MODEL_LAT = 3.34071628;
@@ -65,7 +75,7 @@
               fixedQuat = model.object3D.quaternion.clone();
               model.removeAttribute('gps-entity-place');
               fixed = true;
-            }, 100); // Ajusta el delay si es necesario
+            }, 100);
           }
         });
 
