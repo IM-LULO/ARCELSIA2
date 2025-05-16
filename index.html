@@ -27,7 +27,7 @@
         gps-entity-place="latitude: 3.34071628; longitude: -76.52940404; altitude: 1020.56742902"
         gltf-model="logocelsia.glb"
         scale="1 1 1"
-        rotation="0 67.97105087 0"
+        position="0 0 0"
         visible="false"
       ></a-entity>
     </a-scene>
@@ -59,13 +59,25 @@
         return R * c;
       }
 
+      // Filtro para minimizar ruido GPS
+      let lastLat = null;
+      let lastLon = null;
+      const MIN_DIST_METERS = 0.1; // Solo actualiza si el usuario se mueve más de 10 cm
+
       document.addEventListener("DOMContentLoaded", function() {
         const model = document.getElementById("model");
         const gpsCam = document.getElementById("gpscam");
         gpsCam.addEventListener("gps-camera-update-position", function(event) {
           const { latitude, longitude } = event.detail.position;
-          const distance = getDistanceMeters(latitude, longitude, MODEL_LAT, MODEL_LON);
+          if (lastLat !== null && lastLon !== null) {
+            const dist = getDistanceMeters(latitude, longitude, lastLat, lastLon);
+            if (dist < MIN_DIST_METERS) return; // Ignora el cambio si es muy pequeño
+          }
+          lastLat = latitude;
+          lastLon = longitude;
+
           // Mostrar modelo solo si el usuario está dentro del rango
+          const distance = getDistanceMeters(latitude, longitude, MODEL_LAT, MODEL_LON);
           if (distance <= RANGE_METERS) {
             model.setAttribute("visible", "true");
           } else {
